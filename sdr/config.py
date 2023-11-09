@@ -1,0 +1,17 @@
+# CONFIG.PY
+# A SAR System using SDR Radios
+# Configuration File
+
+
+# CENTER FREQUENCY
+CF = 5935000000 # 5.935 GHz
+
+# BANDWITH
+BW = 20000000 # 20 MHz
+
+# PULSE DURATION
+PD = 1e-6 # 1 Microsecond
+
+# ANTENNAS
+TX_ANTENNA = "RF A: TX/RX"
+RX_ANTENNA = "RF B: TX/RX"
