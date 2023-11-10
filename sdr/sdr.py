@@ -10,12 +10,14 @@ from gnuradio import gr, analog
 
 
 def build_signal(frequency, chirp_rate, pulse_duration):
+    print("build_signal")
     t = np.linspace(0, pulse_duration, int(chirp_rate * pulse_duration), endpoint=False)
     signal = np.exp(1j * 2 * np.pi * frequency * t)
     return signal
 
 
 def send_signal(signal, chirp_rate, tx_freq, tx_gain, tx_antenna):
+    print("send_signal")
     usrp = uhd.usrp.MultiUSRP("type=b200")
     usrp.set_tx_rate(chirp_rate)
     usrp.set_tx_freq(tx_freq)
@@ -28,6 +30,7 @@ def send_signal(signal, chirp_rate, tx_freq, tx_gain, tx_antenna):
 
 
 def receive_signal(rx_freq, rx_gain, rx_antenna, chirp_rate, pulse_duration):
+    print("recieve_signal")
     usrp = uhd.usrp.MultiUSRP("type=b200")
     usrp.set_rx_rate(chirp_rate)
     usrp.set_rx_freq(rx_freq)
@@ -41,6 +44,7 @@ def receive_signal(rx_freq, rx_gain, rx_antenna, chirp_rate, pulse_duration):
 
 
 def parse_signal(signal):
+    print("parse_signal")
     processed_signal = signal  # Placeholder
     return processed_signal
 
@@ -48,7 +52,10 @@ def parse_signal(signal):
 def main():
     # get Chirp Rate
     cr = sar_math.calculate_chirp_rate(config.BW, config.PD)
-    sig = build_signal(config.CF, cr, config.PD)
-    send_signal(sig)
-    receive_signal()
-    parse_signal()
+    print("Chirp Rate is: ", cr)
+    ssig = build_signal(config.CF, cr, config.PD)
+    print("Signal is: ", ssig)
+    send_signal(ssig, cr, config.CF, 20, config.TX_ANTENNA)
+    rsig = receive_signal(config.CF, 20, config.RX_ANTENNA, cr, config.PD)
+    print("recieved signal: ", rsig)
+    parse_signal(rsig)
