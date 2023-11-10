@@ -5,6 +5,7 @@
 import numpy as np
 import config
 import sar_math
+import uhd
 from gnuradio import gr, analog
 
 
