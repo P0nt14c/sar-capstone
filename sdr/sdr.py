@@ -59,3 +59,6 @@ def main():
     rsig = receive_signal(config.CF, 20, config.RX_ANTENNA, cr, config.PD)
     print("recieved signal: ", rsig)
     parse_signal(rsig)
+
+
+main()
