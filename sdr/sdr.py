@@ -17,30 +17,30 @@ def build_signal(frequency, chirp_rate, pulse_duration):
     return signal
 
 
-def send_signal(signal, chirp_rate, tx_freq, tx_gain, tx_antenna):
+def send_signal(signal, chirp_rate, tx_freq, tx_gain, tx_antenna, pulse_duration):
     print("send_signal")
     usrp = uhd.usrp.MultiUSRP("type=b200")
     usrp.set_tx_rate(chirp_rate)
-    usrp.set_tx_freq(tx_freq)
+    usrp.set_tx_freq(float(tx_freq))
     usrp.set_tx_gain(tx_gain)
     usrp.set_tx_antenna(tx_antenna)
-    usrp.set_tx_subdev_spec("A:0")
+    usrp.set_tx_subdev_spec(uhd.usrp.SubdevSpec("A:B"))
     
-    usrp.send(signal, metadata=False)
-    usrp.wait_send_metadata()
+    usrp.send_waveform(signal, pulse_duration, tx_freq)
+#    usrp.wait_send_metadata()
 
 
 def receive_signal(rx_freq, rx_gain, rx_antenna, chirp_rate, pulse_duration):
     print("recieve_signal")
     usrp = uhd.usrp.MultiUSRP("type=b200")
     usrp.set_rx_rate(chirp_rate)
-    usrp.set_rx_freq(rx_freq)
+    usrp.set_rx_freq(float(rx_freq))
     usrp.set_rx_gain(rx_gain)
-    usrp.set_rx_antenna(rx_antenna)
-    usrp.set_rx_subdev_spec("A:0")
+    usrp.set_rx_subdev_spec(uhd.usrp.SubdevSpec("A:B"))
+    usrp.set_rx_antenna('TX/RX', 0)
     
     num_samples = int(chirp_rate * pulse_duration)
-    samples = usrp.recv(num_samples, metadata=False)
+    samples = usrp.recv_num_samps(num_samples, rx_freq)
     return samples
 
 
@@ -56,7 +56,7 @@ def main():
     print("Chirp Rate is: ", cr)
     ssig = build_signal(config.CF, cr, config.PD)
     print("Signal is: ", ssig)
-    send_signal(ssig, cr, config.CF, 20, config.TX_ANTENNA)
+    send_signal(ssig, cr, config.CF, 20, config.TX_ANTENNA, config.PD)
     rsig = receive_signal(config.CF, 20, config.RX_ANTENNA, cr, config.PD)
     print("recieved signal: ", rsig)
     parse_signal(rsig)

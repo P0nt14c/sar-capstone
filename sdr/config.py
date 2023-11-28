@@ -7,7 +7,7 @@
 CF = 5935000000 # 5.935 GHz
 
 # BANDWITH
-BW = 20000000 # 20 MHz
+BW = 20 # 20 MHz
 
 # PULSE DURATION
 PD = 1e-6 # 1 Microsecond
