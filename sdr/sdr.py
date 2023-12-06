@@ -52,32 +52,45 @@ def parse_signal(signal):
     Am=np.mean(A)
     As=np.std(np.abs(A))
     plt.figure(figsize=(4,4))
+    print(":\n", A)
     plt.imshow(np.abs(A),cmap='gray',vmin=0,vmax=Am+As)
     plt.show()
     print(A)
-    print(Am)
-    print(As)
-    return processed_signal
-
+    print(min(A[0]))
+    print(max(A[0]))
+    pass
 
 def main():
     # get Chirp Rate
-    movement = 0
+    sig = []
     while(True):
         cr = sar_math.calculate_chirp_rate(config.BW, config.PD)
-        print("Chirp Rate is: ", cr)
+        #print("Chirp Rate is: ", cr)
         ssig = build_signal(config.CF, cr, config.PD)
-        print("Signal is: ", ssig)
+        #print("Signal is: ", ssig)
         send_signal(ssig, cr, config.CF, 20, config.TX_ANTENNA, config.PD)
         rsig = receive_signal(config.CF, 20, config.RX_ANTENNA, cr, config.PD)
-        print("recieved signal: ", rsig)
+        #print("recieved signal: ", rsig)
+        shape = np.shape(rsig)
+        shape_0 = np.shape(rsig[0])
+        #print("shape:", shape)
+        #print("shape_0:", shape_0)
+        print("rsig[0]\n:", rsig[0])
+        #print("rsig[0][0]\n:", rsig[0][0])
+        #print("[rsig[0], rsig[0]]:\n", [rsig[0], rsig[0]])
+        sig.append(rsig[0])
+        #sig[1] = rsig[0]
+        print("this is sig:\n", sig)
         
         go = input("next signal? ")
         if go == "no":
             break
-        movement += 1
-        
-    parse_signal(rsig)
+    
+    sig_real = np.ndarray((len(sig),56),dtype=np.complex64)
+    for i in range(len(sig)):
+        sig_real[i] = sig[i]
+#    print(sig)
+    parse_signal(sig_real)
 
 
 main()
