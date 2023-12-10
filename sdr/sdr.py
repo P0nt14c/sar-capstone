@@ -9,7 +9,9 @@ import uhd
 import matplotlib.pylab as plt
 from gnuradio import gr, analog
 
-
+noise_p = 0
+signal_p = 0
+recieved_p = 0
 
 def build_signal(frequency, chirp_rate, pulse_duration):
     print("build_signal")
@@ -60,6 +62,18 @@ def parse_signal(signal):
     print(max(A[0]))
     pass
 
+def calculate_complex_power(signal):
+    """Calculate the power of a complex signal."""
+    power = np.mean(np.abs(signal)**2)
+    return power
+
+def calculate_snr(signal, noise):
+    """Calculate the Signal to Noise Ratio (SNR)."""
+    signal_power = calculate_complex_power(signal)
+    noise_power = calculate_complex_power(noise)
+    snr = 10 * np.log10(signal_power / noise_power)
+    return snr
+
 def main():
     # get Chirp Rate
     sig = []
@@ -68,9 +82,16 @@ def main():
         #print("Chirp Rate is: ", cr)
         ssig = build_signal(config.CF, cr, config.PD)
         #print("Signal is: ", ssig)
+        noise = receive_signal(config.CF, 20, config.RX_ANTENNA, cr, config.PD)
+        noise_p = calculate_complex_power(noise[0])
+        print("Noise power: " + str(noise_p))
         send_signal(ssig, cr, config.CF, 20, config.TX_ANTENNA, config.PD)
         rsig = receive_signal(config.CF, 20, config.RX_ANTENNA, cr, config.PD)
         #print("recieved signal: ", rsig)
+        magnitudes = np.abs(rsig[0])
+        power = magnitudes ** 2
+        peak_power = np.max(power)
+        print('peak power: ' + str(peak_power))
         shape = np.shape(rsig)
         shape_0 = np.shape(rsig[0])
         #print("shape:", shape)
@@ -80,17 +101,18 @@ def main():
         #print("[rsig[0], rsig[0]]:\n", [rsig[0], rsig[0]])
         sig.append(rsig[0])
         #sig[1] = rsig[0]
-        #print("this is sig:\n", sig)
-        """ 
+        print("this is sig:\n", sig)
+        print("SNR: " + str((peak_power-noise_p)/noise_p))
+        
         go = input("next signal? ")
         if go == "no":
             break
-        """
+        
     
     sig_real = np.ndarray((len(sig),56),dtype=np.complex64)
     for i in range(len(sig)):
         sig_real[i] = sig[i]
-#    print(sig)
+    print(sig)
     parse_signal(sig_real)
 
 
