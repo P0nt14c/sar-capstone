@@ -63,7 +63,7 @@ def parse_signal(signal):
 def main():
     # get Chirp Rate
     sig = []
-    while(True):
+    for i in range(28):
         cr = sar_math.calculate_chirp_rate(config.BW, config.PD)
         #print("Chirp Rate is: ", cr)
         ssig = build_signal(config.CF, cr, config.PD)
@@ -75,16 +75,17 @@ def main():
         shape_0 = np.shape(rsig[0])
         #print("shape:", shape)
         #print("shape_0:", shape_0)
-        print("rsig[0]\n:", rsig[0])
+        #print("rsig[0]\n:", rsig[0])
         #print("rsig[0][0]\n:", rsig[0][0])
         #print("[rsig[0], rsig[0]]:\n", [rsig[0], rsig[0]])
         sig.append(rsig[0])
         #sig[1] = rsig[0]
-        print("this is sig:\n", sig)
-        
+        #print("this is sig:\n", sig)
+        """ 
         go = input("next signal? ")
         if go == "no":
             break
+        """
     
     sig_real = np.ndarray((len(sig),56),dtype=np.complex64)
     for i in range(len(sig)):
