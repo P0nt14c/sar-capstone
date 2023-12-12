@@ -13,6 +13,12 @@ noise_p = 0
 signal_p = 0
 recieved_p = 0
 
+ySNR_ARRAY = []
+ySIGNAL_ARRAY = []
+yNOISE_ARRAY = []
+
+
+
 def build_signal(frequency, chirp_rate, pulse_duration):
     print("build_signal")
     t = np.linspace(0, pulse_duration, int(chirp_rate * pulse_duration), endpoint=False)
@@ -65,19 +71,43 @@ def parse_signal(signal):
 def calculate_complex_power(signal):
     """Calculate the power of a complex signal."""
     power = np.mean(np.abs(signal)**2)
+    
+    
     return power
 
 def calculate_snr(signal, noise):
     """Calculate the Signal to Noise Ratio (SNR)."""
-    signal_power = calculate_complex_power(signal)
-    noise_power = calculate_complex_power(noise)
-    snr = 10 * np.log10(signal_power / noise_power)
+#    signal_power = calculate_complex_power(signal)
+#    noise_power = calculate_complex_power(noise)
+    snr = 10 * np.log10(signal / noise)
+   
+    ySNR_ARRAY.append(snr)
+    ySIGNAL_ARRAY.append(signal)
+    yNOISE_ARRAY.append(noise)
+    
+    print("snr: \t", snr)
+    print("signal: \t", signal)
+    print("noise: \t", noise)
     return snr
+    
+def calculateMean(arr):
+    return sum(arr)/len(arr)
+    
+def calculateMedian(arr):
+    return sorted(arr)[len(arr) // 2]
+
+def calculateSD(arr):
+    mean = calculateMean(arr)
+    SD = 0
+    for i in arr:
+        SD += (i - mean)**2
+    return (SD / (len(arr))) ** (1/2)
 
 def main():
     # get Chirp Rate
     sig = []
-    for i in range(28):
+    iterations = 100
+    for i in range(iterations):
         cr = sar_math.calculate_chirp_rate(config.BW, config.PD)
         #print("Chirp Rate is: ", cr)
         ssig = build_signal(config.CF, cr, config.PD)
@@ -91,6 +121,9 @@ def main():
         magnitudes = np.abs(rsig[0])
         power = magnitudes ** 2
         peak_power = np.max(power)
+        if peak_power <= noise_p:
+            iterations += 1
+            continue
         print('peak power: ' + str(peak_power))
         shape = np.shape(rsig)
         shape_0 = np.shape(rsig[0])
@@ -102,11 +135,13 @@ def main():
         sig.append(rsig[0])
         #sig[1] = rsig[0]
         print("this is sig:\n", sig)
-        print("SNR: " + str((peak_power-noise_p)/noise_p))
         
+        print("SNR: " + str(calculate_snr((peak_power-noise_p),noise_p)))
+        """
         go = input("next signal? ")
         if go == "no":
             break
+        """
         
     
     sig_real = np.ndarray((len(sig),56),dtype=np.complex64)
@@ -114,6 +149,33 @@ def main():
         sig_real[i] = sig[i]
     print(sig)
     parse_signal(sig_real)
+    
+    x = [i for i in range(len(ySNR_ARRAY))]
+    
+    plt.plot(x, ySNR_ARRAY, label = "signal to noise ratio")
+    plt.legend() 
+    plt.show()
+    
+    
+    plt.plot(x, ySIGNAL_ARRAY, label = "signal") 
+    plt.legend() 
+    plt.show()
+    
+    
+    plt.plot(x, yNOISE_ARRAY, label = "noise") 
+    plt.legend() 
+    plt.show()
 
+    
+    print("snr: \t", ySNR_ARRAY, "\n", "signal: \t", ySIGNAL_ARRAY, "\n", "noise: \t", yNOISE_ARRAY)
+    print("snr mean  :\t", calculateMean(ySNR_ARRAY))
+    print("snr median:\t", calculateMedian(ySNR_ARRAY))
+    print("snr std   :\t", calculateSD(ySNR_ARRAY))
+    print("signal mean  :\t", calculateMean(ySIGNAL_ARRAY))
+    print("signal median:\t", calculateMedian(ySIGNAL_ARRAY))
+    print("signal std   :\t", calculateSD(ySIGNAL_ARRAY))
+    print("noise mean  :\t", calculateMean(yNOISE_ARRAY))
+    print("noise median:\t", calculateMedian(yNOISE_ARRAY))
+    print("noise std   :\t", calculateSD(yNOISE_ARRAY))
 
 main()
